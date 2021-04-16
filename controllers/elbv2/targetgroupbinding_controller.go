@@ -41,6 +41,8 @@ import (
 const (
 	targetGroupBindingFinalizer = "elbv2.k8s.aws/resources"
 	controllerName              = "targetGroupBinding"
+	// TODO: move to annotations pkg. Also, remove "wish"
+	targetGroupBindingClassAnnotation = "wish.com/target-group-binding-class"
 )
 
 // NewTargetGroupBindingReconciler constructs new targetGroupBindingReconciler
@@ -56,6 +58,7 @@ func NewTargetGroupBindingReconciler(k8sClient client.Client, eventRecorder reco
 		logger:             logger,
 
 		maxConcurrentReconciles: config.TargetGroupBindingMaxConcurrentReconciles,
+		targetGroupBindingClass: config.TargetGroupBindingClass,
 	}
 }
 
@@ -68,6 +71,7 @@ type targetGroupBindingReconciler struct {
 	logger             logr.Logger
 
 	maxConcurrentReconciles int
+	targetGroupBindingClass string
 }
 
 // +kubebuilder:rbac:groups=elbv2.k8s.aws,resources=targetgroupbindings,verbs=get;list;watch;update;patch;create;delete
@@ -89,6 +93,10 @@ func (r *targetGroupBindingReconciler) reconcile(req ctrl.Request) error {
 	tgb := &elbv2api.TargetGroupBinding{}
 	if err := r.k8sClient.Get(ctx, req.NamespacedName, tgb); err != nil {
 		return client.IgnoreNotFound(err)
+	}
+
+	if r.targetGroupBindingClass != "" && tgb.Annotations[targetGroupBindingClassAnnotation] != r.targetGroupBindingClass {
+		return nil
 	}
 
 	if !tgb.DeletionTimestamp.IsZero() {

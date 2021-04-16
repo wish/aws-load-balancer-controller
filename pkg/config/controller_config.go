@@ -12,11 +12,13 @@ const (
 	flagK8sClusterName                            = "cluster-name"
 	flagDefaultTags                               = "default-tags"
 	flagServiceMaxConcurrentReconciles            = "service-max-concurrent-reconciles"
+	flagTargetGroupBindingClass                   = "target-group-binding-class"
 	flagTargetGroupBindingMaxConcurrentReconciles = "targetgroupbinding-max-concurrent-reconciles"
 	flagDefaultSSLPolicy                          = "default-ssl-policy"
 	defaultLogLevel                               = "info"
 	defaultMaxConcurrentReconciles                = 3
 	defaultSSLPolicy                              = "ELBSecurityPolicy-2016-08"
+	defaultTargetGroupBindingClass                = ""
 )
 
 // ControllerConfig contains the controller configuration
@@ -47,6 +49,7 @@ type ControllerConfig struct {
 	ServiceMaxConcurrentReconciles int
 	// Max concurrent reconcile loops for TargetGroupBinding objects
 	TargetGroupBindingMaxConcurrentReconciles int
+	TargetGroupBindingClass                   string
 }
 
 // BindFlags binds the command line flags to the fields in the config object
@@ -62,6 +65,8 @@ func (cfg *ControllerConfig) BindFlags(fs *pflag.FlagSet) {
 		"Maximum number of concurrently running reconcile loops for targetGroupBinding")
 	fs.StringVar(&cfg.DefaultSSLPolicy, flagDefaultSSLPolicy, defaultSSLPolicy,
 		"Default SSL policy for load balancers listeners")
+	fs.StringVar(&cfg.TargetGroupBindingClass, flagTargetGroupBindingClass, defaultTargetGroupBindingClass,
+		"Name of the TargetGroupBinding class this controller satisfies")
 
 	cfg.AWSConfig.BindFlags(fs)
 	cfg.RuntimeConfig.BindFlags(fs)
